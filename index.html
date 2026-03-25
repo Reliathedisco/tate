@@ -303,6 +303,93 @@
       line-height: 1.5;
     }
 
+    /* pro section */
+    .pro {
+      margin-top: 80px;
+      animation: fadeUp 0.8s ease-out 0.6s both;
+    }
+    .pro-card {
+      background: linear-gradient(135deg, #141416 0%, #1a1a1f 100%);
+      border: 1px solid #2a2a30;
+      border-radius: 20px;
+      padding: 40px 36px;
+      position: relative;
+      overflow: hidden;
+    }
+    .pro-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--green), var(--yellow), transparent);
+    }
+    .pro-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--green), var(--yellow));
+      color: #0a0a0b;
+      font-weight: 700;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 100px;
+    }
+    .pro-card h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-top: 16px;
+    }
+    .pro-card h2 code {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--green);
+      font-size: 1.3rem;
+    }
+    .pro-card .pitch {
+      color: var(--dim);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      margin-top: 12px;
+      max-width: 520px;
+    }
+    .pro-card .pitch strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .pro-price {
+      margin-top: 24px;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+    .pro-price .amount {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .pro-price .period {
+      color: var(--dim);
+      font-size: 0.9rem;
+    }
+    .pro-cta {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, var(--green), #22d3ee);
+      color: #0a0a0b;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border-radius: 10px;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .pro-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(74, 222, 128, 0.2);
+    }
+
     /* footer */
     footer {
       margin-top: 80px;
@@ -394,6 +481,23 @@
         <div class="flag-card">
           <code>~/.tate.json</code>
           <span>remembers your preferences between runs</span>
+        </div>
+      </section>
+
+      <section class="pro">
+        <div class="pro-card">
+          <span class="pro-badge">pro</span>
+          <h2><code>--watch</code> mode</h2>
+          <p class="pitch">
+            stop debugging for 20 minutes only to find out <strong>it was Stripe, not you</strong>.
+            tate runs in the background, polls every 3 minutes, and fires a <strong>desktop notification the second something goes down</strong>.
+            you'll know before anyone else.
+          </p>
+          <div class="pro-price">
+            <span class="amount">$3</span>
+            <span class="period">/ month</span>
+          </div>
+          <a href="https://buy.stripe.com/fZu14p6Ge2azfrke6x4Ja0q" class="pro-cta" target="_blank" rel="noopener noreferrer">subscribe to watch mode →</a>
         </div>
       </section>
 

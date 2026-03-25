@@ -12,6 +12,14 @@ import {
   printNoServices
 } from "./display.js"
 import { SERVICES } from "./services.js"
+import { startWatch } from "./watch.js"
+import {
+  getLicenseKey,
+  saveLicenseKey,
+  printUpgradePrompt,
+  printActivated,
+  printInvalidLicense
+} from "./license.js"
 
 async function prompt(question: string): Promise<string> {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
@@ -59,13 +67,26 @@ async function handleFirstRun(): Promise<string[]> {
 async function run(): Promise<void> {
   printIntro()
 
-  let serviceKeys: string[] = []
-
   const args = process.argv.slice(2)
   const forceChoose = args.includes("--choose")
   const checkAll = args.includes("--all")
+  const watchMode = args.includes("--watch")
+  const activateIdx = args.indexOf("--activate")
 
-  if (checkAll) {
+  if (activateIdx !== -1) {
+    const key = args[activateIdx + 1]
+    if (!key) {
+      printInvalidLicense()
+      process.exit(1)
+    }
+    saveLicenseKey(key)
+    printActivated()
+    return
+  }
+
+  let serviceKeys: string[] = []
+
+  if (checkAll || watchMode) {
     serviceKeys = Object.keys(SERVICES)
   } else if (forceChoose || isFirstRun()) {
     serviceKeys = await handleFirstRun()
@@ -81,6 +102,16 @@ async function run(): Promise<void> {
   if (serviceKeys.length === 0) {
     printNoServices()
     process.exit(0)
+  }
+
+  if (watchMode) {
+    const license = getLicenseKey()
+    if (!license) {
+      printUpgradePrompt()
+      process.exit(0)
+    }
+    await startWatch(serviceKeys)
+    return
   }
 
   printChecking()
