@@ -4,8 +4,7 @@ import * as os from "os"
 import chalk from "chalk"
 
 const LICENSE_PATH = path.join(os.homedir(), ".tate-license")
-const PAYMENT_LINK = "https://buy.stripe.com/fZu14p6Ge2azfrke6x4Ja0q"
-const VALIDATE_URL = "https://tate-gamma.vercel.app/api/validate"
+const SUBSCRIBE_URL = "https://tate-gamma.vercel.app/#subscribe"
 
 interface LicenseData {
   key: string
@@ -34,7 +33,7 @@ export function printUpgradePrompt(): void {
   console.log(chalk.dim("  tate watches your stack in the background and notifies"))
   console.log(chalk.dim("  you the moment something goes down. no more guessing."))
   console.log()
-  console.log(`  ${chalk.bold("subscribe →")} ${chalk.cyan(PAYMENT_LINK)}`)
+  console.log(`  ${chalk.bold("subscribe →")} ${chalk.cyan(SUBSCRIBE_URL)}`)
   console.log()
   console.log(chalk.dim("  after subscribing, activate with:"))
   console.log(`  ${chalk.bold("npx tate --activate <your-license-key>")}`)
@@ -51,6 +50,6 @@ export function printActivated(): void {
 export function printInvalidLicense(): void {
   console.log()
   console.log(chalk.red("  ✗ invalid or expired license key"))
-  console.log(chalk.dim("  subscribe at: ") + chalk.cyan(PAYMENT_LINK))
+  console.log(chalk.dim("  subscribe at: ") + chalk.cyan(SUBSCRIBE_URL))
   console.log()
 }

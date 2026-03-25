@@ -484,7 +484,7 @@
         </div>
       </section>
 
-      <section class="pro">
+      <section class="pro" id="subscribe">
         <div class="pro-card">
           <span class="pro-badge">pro</span>
           <h2><code>--watch</code> mode</h2>
@@ -497,7 +497,7 @@
             <span class="amount">$3</span>
             <span class="period">/ month</span>
           </div>
-          <a href="https://buy.stripe.com/fZu14p6Ge2azfrke6x4Ja0q" class="pro-cta" target="_blank" rel="noopener noreferrer">subscribe to watch mode →</a>
+          <a href="#" class="pro-cta" id="subscribe-btn" onclick="startCheckout(event)">subscribe to watch mode →</a>
         </div>
       </section>
 
@@ -554,6 +554,26 @@
         hint.textContent = 'click to copy';
         el.classList.remove('copied');
       }, 2000);
+    }
+
+    async function startCheckout(e) {
+      e.preventDefault();
+      const btn = document.getElementById('subscribe-btn');
+      btn.textContent = 'redirecting to checkout...';
+      btn.style.pointerEvents = 'none';
+      try {
+        const res = await fetch('/api/checkout', { method: 'POST' });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          btn.textContent = 'something went wrong — try again';
+          btn.style.pointerEvents = '';
+        }
+      } catch {
+        btn.textContent = 'something went wrong — try again';
+        btn.style.pointerEvents = '';
+      }
     }
   </script>
 </body>
