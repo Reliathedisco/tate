@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tate — are your APIs down?</title>
+  <meta name="description" content="checks if your APIs are down so you don't have to google it" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --green: #4ade80;
+      --yellow: #facc15;
+      --red: #f87171;
+      --gray: #6b7280;
+      --bg: #0a0a0b;
+      --surface: #141416;
+      --border: #1f1f23;
+      --text: #e4e4e7;
+      --dim: #71717a;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 256px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page { position: relative; z-index: 1; }
+
+    /* floating orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.12;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 { width: 500px; height: 500px; background: var(--green); top: -10%; left: -10%; animation: drift1 20s ease-in-out infinite; }
+    .orb-2 { width: 400px; height: 400px; background: var(--yellow); bottom: 10%; right: -5%; animation: drift2 25s ease-in-out infinite; }
+    .orb-3 { width: 300px; height: 300px; background: var(--red); top: 50%; left: 50%; animation: drift3 18s ease-in-out infinite; }
+
+    @keyframes drift1 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(60px, 40px); } }
+    @keyframes drift2 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-50px, -30px); } }
+    @keyframes drift3 { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-40px, 50px); } }
+
+    /* layout */
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* nav */
+    nav {
+      padding: 24px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .logo span { opacity: 0.4; }
+    nav a.gh {
+      color: var(--dim);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s;
+    }
+    nav a.gh:hover { color: var(--text); }
+
+    /* hero */
+    .hero {
+      padding: 100px 0 60px;
+      text-align: center;
+      animation: fadeUp 0.8s ease-out both;
+    }
+    .wave {
+      font-size: 3rem;
+      display: inline-block;
+      animation: wave 2s ease-in-out infinite;
+      transform-origin: 70% 70%;
+    }
+    @keyframes wave {
+      0%, 100% { transform: rotate(0deg); }
+      15% { transform: rotate(14deg); }
+      30% { transform: rotate(-8deg); }
+      40% { transform: rotate(14deg); }
+      50% { transform: rotate(-4deg); }
+      60% { transform: rotate(10deg); }
+      70% { transform: rotate(0deg); }
+    }
+    .hero h1 {
+      font-size: clamp(2.8rem, 8vw, 4.5rem);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      margin: 16px 0 0;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--green), var(--yellow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--dim);
+      margin-top: 20px;
+      line-height: 1.6;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* install */
+    .install {
+      margin-top: 40px;
+      display: flex;
+      justify-content: center;
+      animation: fadeUp 0.8s ease-out 0.15s both;
+    }
+    .install-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .install-box:hover {
+      border-color: #2a2a30;
+      box-shadow: 0 0 0 1px #2a2a30;
+    }
+    .install-box .prompt { color: var(--green); user-select: none; }
+    .install-box code { color: var(--text); }
+    .install-box .copy-hint {
+      color: var(--dim);
+      font-size: 0.75rem;
+      font-family: 'Space Grotesk', sans-serif;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .install-box:hover .copy-hint { opacity: 1; }
+    .install-box.copied .copy-hint { opacity: 1; color: var(--green); }
+
+    /* terminal */
+    .terminal-wrap {
+      margin-top: 64px;
+      animation: fadeUp 0.8s ease-out 0.3s both;
+    }
+    .terminal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .terminal-bar {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .terminal-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #27272a;
+    }
+    .terminal-dot:nth-child(1) { background: #f87171; }
+    .terminal-dot:nth-child(2) { background: #facc15; }
+    .terminal-dot:nth-child(3) { background: #4ade80; }
+    .terminal-title {
+      flex: 1;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--dim);
+      font-family: 'JetBrains Mono', monospace;
+      margin-right: 36px;
+    }
+    .terminal-body {
+      padding: 24px 28px 28px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      line-height: 1.9;
+    }
+    .terminal-body .line { opacity: 0; animation: typeLine 0.3s ease-out forwards; }
+    .terminal-body .g { color: var(--green); }
+    .terminal-body .y { color: var(--yellow); }
+    .terminal-body .r { color: var(--red); }
+    .terminal-body .d { color: var(--dim); }
+    .terminal-body .b { font-weight: 600; color: var(--text); }
+    .terminal-body .blank { height: 1.9em; }
+
+    @keyframes typeLine {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* services strip */
+    .services {
+      margin-top: 64px;
+      text-align: center;
+      animation: fadeUp 0.8s ease-out 0.45s both;
+    }
+    .services p {
+      font-size: 0.85rem;
+      color: var(--dim);
+      margin-bottom: 20px;
+      text-transform: lowercase;
+    }
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    .pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 8px 18px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .pill:hover {
+      border-color: #2a2a30;
+      transform: translateY(-2px);
+    }
+    .pill .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* flags */
+    .flags {
+      margin-top: 64px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      animation: fadeUp 0.8s ease-out 0.55s both;
+    }
+    @media (max-width: 500px) { .flags { grid-template-columns: 1fr; } }
+    .flag-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 24px;
+      transition: border-color 0.2s;
+    }
+    .flag-card:hover { border-color: #2a2a30; }
+    .flag-card code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--green);
+    }
+    .flag-card span {
+      display: block;
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: var(--dim);
+      line-height: 1.5;
+    }
+
+    /* footer */
+    footer {
+      margin-top: 80px;
+      padding: 32px 0;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      animation: fadeUp 0.8s ease-out 0.65s both;
+    }
+    footer p {
+      font-size: 0.85rem;
+      color: var(--dim);
+    }
+    footer a {
+      color: var(--text);
+      text-decoration: none;
+    }
+    footer a:hover { text-decoration: underline; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="page">
+    <div class="container">
+      <nav>
+        <a href="/" class="logo">tate <span>v0.1.0</span></a>
+        <a href="https://github.com/IntegrateAPI/tate" class="gh" target="_blank" rel="noopener noreferrer">github ↗</a>
+      </nav>
+
+      <section class="hero">
+        <div class="wave">👋</div>
+        <h1>hi i'm <em>tate</em></h1>
+        <p>i check if your APIs are down so you don't have to google it. one command, all your services, zero drama.</p>
+      </section>
+
+      <div class="install">
+        <div class="install-box" onclick="copyInstall(this)">
+          <span class="prompt">$</span>
+          <code>npx tate --all</code>
+          <span class="copy-hint">click to copy</span>
+        </div>
+      </div>
+
+      <section class="terminal-wrap">
+        <div class="terminal">
+          <div class="terminal-bar">
+            <div class="terminal-dot"></div>
+            <div class="terminal-dot"></div>
+            <div class="terminal-dot"></div>
+            <div class="terminal-title">~/your-project</div>
+          </div>
+          <div class="terminal-body" id="term"></div>
+        </div>
+      </section>
+
+      <section class="services">
+        <p>services tate knows about</p>
+        <div class="pill-row">
+          <div class="pill"><span class="dot"></span> Stripe</div>
+          <div class="pill"><span class="dot"></span> Supabase</div>
+          <div class="pill"><span class="dot"></span> Clerk</div>
+          <div class="pill"><span class="dot"></span> Vercel</div>
+          <div class="pill"><span class="dot"></span> OpenAI</div>
+          <div class="pill"><span class="dot"></span> Resend</div>
+          <div class="pill"><span class="dot"></span> GitHub</div>
+        </div>
+      </section>
+
+      <section class="flags">
+        <div class="flag-card">
+          <code>--all</code>
+          <span>check every service at once, no questions asked</span>
+        </div>
+        <div class="flag-card">
+          <code>--choose</code>
+          <span>pick exactly which services you care about</span>
+        </div>
+        <div class="flag-card">
+          <code>auto-detect</code>
+          <span>reads your package.json and figures it out</span>
+        </div>
+        <div class="flag-card">
+          <code>~/.tate.json</code>
+          <span>remembers your preferences between runs</span>
+        </div>
+      </section>
+
+      <footer>
+        <p>made by <a href="https://github.com/IntegrateAPI">IntegrateAPI</a> · mit license</p>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const lines = [
+      { text: '<span class="b">  👋 hi i\'m tate</span>', delay: 0 },
+      { text: '', delay: 100, blank: true },
+      { text: '<span class="d">  checking your stack...</span>', delay: 200 },
+      { text: '', delay: 300, blank: true },
+      { text: '<span class="g">  ✓</span>  <span class="b">Stripe  </span>  <span class="g">all good</span>', delay: 500 },
+      { text: '<span class="g">  ✓</span>  <span class="b">Supabase</span>  <span class="g">all good</span>', delay: 620 },
+      { text: '<span class="g">  ✓</span>  <span class="b">Clerk   </span>  <span class="g">all good</span>', delay: 740 },
+      { text: '<span class="g">  ✓</span>  <span class="b">Vercel  </span>  <span class="g">all good</span>', delay: 860 },
+      { text: '<span class="y">  ⚠</span>  <span class="b">OpenAI  </span>  <span class="y">some degradation</span>', delay: 980 },
+      { text: '<span class="g">  ✓</span>  <span class="b">Resend  </span>  <span class="g">all good</span>', delay: 1100 },
+      { text: '<span class="g">  ✓</span>  <span class="b">GitHub  </span>  <span class="g">all good</span>', delay: 1220 },
+      { text: '', delay: 1350, blank: true },
+      { text: '<span class="d">  checked 7 services · </span><span class="y">1 degraded</span>', delay: 1500 },
+      { text: '', delay: 1600, blank: true },
+      { text: '<span class="d">  → status.openai.com</span>', delay: 1700 },
+    ];
+
+    const term = document.getElementById('term');
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        renderLines();
+        observer.disconnect();
+      }
+    }, { threshold: 0.3 });
+    observer.observe(term);
+
+    function renderLines() {
+      lines.forEach(l => {
+        const div = document.createElement('div');
+        div.className = l.blank ? 'blank line' : 'line';
+        div.innerHTML = l.text;
+        div.style.animationDelay = l.delay + 'ms';
+        term.appendChild(div);
+      });
+    }
+
+    function copyInstall(el) {
+      navigator.clipboard.writeText('npx tate --all');
+      const hint = el.querySelector('.copy-hint');
+      hint.textContent = 'copied!';
+      el.classList.add('copied');
+      setTimeout(() => {
+        hint.textContent = 'click to copy';
+        el.classList.remove('copied');
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
