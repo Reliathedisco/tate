@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "method not allowed" });
   }
 
-  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  const stripeKey = process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET;
   if (!stripeKey) {
     return res.status(500).json({ error: "server config error" });
   }

@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "missing session — try the payment link again" });
   }
 
-  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  const stripeKey = process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET;
   if (!stripeKey) {
     return res.status(500).json({ error: "server config error — contact support" });
   }
